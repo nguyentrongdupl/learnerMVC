@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Index";
+    var excelError = ViewData["Error"];
 }
 <html lang="vi">
 @section Heads {
@@ -24,6 +25,13 @@
             Tạo Mới  <i class="fa-solid fa-plus"></i>
         </a>
     </p>
+    <form asp-action="ImportExcel" method="post" enctype="multipart/form-data">
+        <div class="form-group">
+            <label for="file">Select Excel file</label>
+            <input type="file" name="file" class="form-control" />
+        </div>
+        <button type="submit" data-bs-dismiss="toast" class="btn btn-primary">Import</button>
+    </form>
     <table class="table table-hover" id="example">
         <thead>
             <tr>
@@ -70,64 +78,79 @@
             @{
                 int count = 0;
             }
-            @foreach (var item in Model)
+            @if (Model == null)
             {
-                count++;
-                <tr>
-                    <td>
-                        @count
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.MaHocVien)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Email)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Sdt)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.SoSoBaoHiem)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.NoiSinh)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.QueQuan)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.IdHuyenNavigation.TenHuyen)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.IdNguoiNavigation.name)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.IdTinhNavigation.TenTinh)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.IdXaNavigation.TenXa)
-                    </td>
-                    <td>
-                        <a asp-action="Edit" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chỉnh sửa">
-                            <div class="icon-container">
-                                <i class="fa-regular fa-pen-to-square" style="color: #7dd9bd;"></i>
-                            </div>
-                        </a>
-                        <a asp-action="Details" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chi tiết">
-                            <div class="icon-container">
-                                <i class="fa-solid fa-circle-info" style="color: #e5b8e4;"></i>
-                            </div>
-                        </a>
-                        <a asp-action="Delete" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Xóa">
-                            <div class="icon-container">
-                                <i class="fa-solid fa-trash" style="color: #f46262;"></i>
-                            </div>
-                        </a>
-                    </td>
-                </tr>
+                <div id="toastexcel" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Lỗi</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        File không hợp lệ
+                    </div>
+                </div>
+            }
+            else
+            {
+                @foreach (var item in Model)
+                {
+                    count++;
+                    <tr>
+                        <td>
+                            @count
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.MaHocVien)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Email)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.Sdt)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.SoSoBaoHiem)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.NoiSinh)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.QueQuan)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdHuyenNavigation.TenHuyen)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdNguoiNavigation.name)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdTinhNavigation.TenTinh)
+                        </td>
+                        <td>
+                            @Html.DisplayFor(modelItem => item.IdXaNavigation.TenXa)
+                        </td>
+                        <td>
+                            <a asp-action="Edit" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                                <div class="icon-container">
+                                    <i class="fa-regular fa-pen-to-square" style="color: #7dd9bd;"></i>
+                                </div>
+                            </a>
+                            <a asp-action="Details" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chi tiết">
+                                <div class="icon-container">
+                                    <i class="fa-solid fa-circle-info" style="color: #e5b8e4;"></i>
+                                </div>
+                            </a>
+                            <a asp-action="Delete" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Xóa">
+                                <div class="icon-container">
+                                    <i class="fa-solid fa-trash" style="color: #f46262;"></i>
+                                </div>
+                            </a>
+                        </td>
+                    </tr>
+                }
             }
         </tbody>
     </table>
@@ -141,6 +164,24 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdfmake/0.1.53/vfs_fonts.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
+
+    <script>
+        $(document).ready(function () {
+            // Check if there is a toast message
+            if (@excelError != null) {
+                var toastMessage = @excelError;
+                var toastType = @excelError;
+
+                // Set toast content and style
+                $('#toastBody').text(toastMessage);
+                $('#toastMessage').removeClass('bg-success bg-danger').addClass('bg-' + toastType);
+
+                // Show the toast
+                var toast = new bootstrap.Toast($('#toastexcel')[0]);
+                toast.show();
+            }
+        });
+    </script>
 
     <script>
         // Initialize DataTable
