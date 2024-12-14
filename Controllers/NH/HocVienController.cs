@@ -4,7 +4,13 @@ using C500Hemis.Models.DM;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
+using C500Hemis.Models;
+using C500Hemis.API;
+using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 using Newtonsoft.Json;
+
 namespace C500Hemis.Controllers.NH
 {
     public class HocVienController : Controller
@@ -262,6 +268,55 @@ namespace C500Hemis.Controllers.NH
                 return BadRequest();
             }
 
+        }
+
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    return View("Index");
+                }
+                else
+                {
+                    using (var stream = new MemoryStream())
+                    {
+                        await file.OpenReadStream().CopyToAsync(stream);
+                        stream.Position = 0;
+                        var workbook = new Workbook();
+                        workbook.LoadFromStream(stream);
+                        var worksheet = workbook.Worksheets[0];
+                        DataTable dataTable = worksheet.ExportDataTable();
+
+                        foreach (DataRow row in dataTable.Rows)
+                        {
+                            var hv = new TbHocVien()
+                            {
+                                IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                                MaHocVien = row["Mã học viên"].ToString(),
+                                IdNguoi = int.Parse(row["ID người"].ToString()),
+                                Email = row["Email"].ToString(),
+                                Sdt = row["Số điện thoại"].ToString(),
+                                SoSoBaoHiem = row["Số sổ bảo hiểm"].ToString(),
+                                IdLoaiKhuyetTat = int.Parse(row["ID loại khuyết tật"].ToString()),
+                                IdTinh = int.Parse(row["ID tỉnh"].ToString()),
+                                IdHuyen = int.Parse(row["ID Huyện"].ToString()),
+                                IdXa = int.Parse(row["ID xã"].ToString()),
+                                NoiSinh = row["Nơi sinh"].ToString(),
+                                QueQuan = row["Quê quán"].ToString()
+                            };
+                            await Create(hv);
+                        }
+                    }
+                }
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         private async Task<bool> TbHocVienExists(int id)
