@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
+﻿using C500Hemis.API;
+using C500Hemis.Models;
+using C500Hemis.Models.DM;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +9,8 @@ using C500Hemis.API;
 using C500Hemis.Models.DM;
 using Spire.Xls;
 using System.Data;
+using Newtonsoft.Json;
+
 namespace C500Hemis.Controllers.NH
 {
     public class HocVienController : Controller
@@ -322,6 +323,45 @@ namespace C500Hemis.Controllers.NH
         {
             var tbHocViens = await ApiServices_.GetAll<TbHocVien>("/api/nh/HocVien");
             return tbHocViens.Any(e => e.IdHocVien == id);
+        }
+
+        public async Task<IActionResult> DisableChart()
+        {
+            try
+            {
+                List<TbHocVien> getall = await TbHocViens();
+                // Lấy data cho biểu đồ khuyết tật
+                var disabilityCounts = getall.GroupBy(hv => hv.IdLoaiKhuyetTatNavigation == null
+                                        ? "Không" // Label for null cases
+                                        : hv.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
+                                            .Select(g => new
+                                            {
+                                                LoaiKhuyetTat = g.Key,
+                                                Count = g.Count()
+                                            }).ToList();
+                ViewData["DisabilityCounts"] = disabilityCounts;
+                return View();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+
+        }
+        public async Task<JsonResult> GetLoaiKhuyetTatDataAsync()
+        {
+            var list = await TbHocViens();
+            var data = list
+                .GroupBy(hv => hv.IdLoaiKhuyetTatNavigation == null
+            ? "Không" // Label for null cases
+            : hv.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
+                .Select(g => new
+                {
+                    LoaiKhuyetTat = g.Key,
+                    Count = g.Count()
+                }).ToList();
+
+            return Json(data);
         }
     }
 }
