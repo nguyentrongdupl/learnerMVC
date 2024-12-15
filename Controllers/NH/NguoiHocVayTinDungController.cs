@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class NguoiHocVayTinDungController : Controller
@@ -272,6 +274,54 @@ namespace C500Hemis.Controllers.NH
         {
             var tbNguoiHocVayTinDungs = await ApiServices_.GetAll<TbNguoiHocVayTinDung>("/api/nh/NguoiHocVayTinDung");
             return tbNguoiHocVayTinDungs.Any(e => e.IdNguoiHocVayTinDung == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbNguoiHocVayTinDung> getall = await TbNguoiHocVayTinDungs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var nhvtd = new TbNguoiHocVayTinDung()
+                        {
+                            IdNguoiHocVayTinDung = int.Parse(row["ID người học vay tín dụng"].ToString()),
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            SoTienDuocVay = int.Parse(row["Số tiền được vay"].ToString()),
+                            TenToChucTinDung = row["Tên tổ chức tín dụng"].ToString(),
+                            NgayVay = DateOnly.Parse(row["Ngày vay"].ToString()),
+                            DiaChi = row["Địa chỉ"].ToString(),
+                            ThoiHanVay = int.Parse(row["Thời hạn vay (tháng)"].ToString()),
+                            TinhTrangVay = int.Parse(row["Tình trạng vay"].ToString())
+                        };
+                        await Create(nhvtd);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         public async Task<IActionResult> Chart()

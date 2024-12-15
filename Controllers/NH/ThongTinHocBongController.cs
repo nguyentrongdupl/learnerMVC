@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class ThongTinHocBongController : Controller
@@ -272,6 +274,53 @@ namespace C500Hemis.Controllers.NH
         {
             var tbThongTinHocBongs = await ApiServices_.GetAll<TbThongTinHocBong>("/api/nh/ThongTinHocBong");
             return tbThongTinHocBongs.Any(e => e.IdThongTinHocBong == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbThongTinHocBong> getall = await TbThongTinHocBongs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var hocbong = new TbThongTinHocBong()
+                        {
+                            IdThongTinHocBong = int.Parse(row["ID thông tin học bổng"].ToString()),
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            TenHocBong = row["Tên học bổng"].ToString(),
+                            DonViTaiTro = row["Đơn vị tài trợ"].ToString(),
+                            ThoiGianTraoTangHocBong = DateOnly.Parse(row["Thời gian trao tặng học bổng"].ToString()),
+                            IdLoaiHocBong = int.Parse(row["ID loại học bổng"].ToString()),
+                            GiaTriHocBong = int.Parse(row["Giá trị học bổng"].ToString())
+                        };
+                        await Create(hocbong);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         public async Task<IActionResult> Chart()

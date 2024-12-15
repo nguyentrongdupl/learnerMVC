@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.CTDT
 {
     public class ThongTinHocTapNghienCuuSinhController : Controller
@@ -315,6 +317,71 @@ namespace C500Hemis.Controllers.CTDT
         {
             var tbThongTinHocTapNghienCuuSinhs = await ApiServices_.GetAll<TbThongTinHocTapNghienCuuSinh>("/api/nh/ThongTinHocTapNghienCuuSinh");
             return tbThongTinHocTapNghienCuuSinhs.Any(e => e.IdThongTinHocTapNghienCuuSinh == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbThongTinHocTapNghienCuuSinh> getall = await TbThongTinHocTapNghienCuuSinhs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var ncs = new TbThongTinHocTapNghienCuuSinh()
+                        {
+                            IdThongTinHocTapNghienCuuSinh = int.Parse(row["ID thông tin học tập nghiên cứu sinh"].ToString()),
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            IdDoiTuongDauVao = int.Parse(row["ID đối tượng đầu vào"].ToString()),
+                            IdSinhVienNam = int.Parse(row["ID sinh viên năm"].ToString()),
+                            IdChuongTrinhDaoTao = int.Parse(row["ID chương trình đào tạo"].ToString()),
+                            IdLoaiHinhDaoTao = int.Parse(row["ID loại hình đào tạo"].ToString()),
+                            DaoTaoTuNam = DateOnly.Parse(row["Đào tạo từ năm"].ToString()),
+                            DaoTaoDenNam = DateOnly.Parse(row["Đào tạo đến năm"].ToString()),
+                            NgayNhapHoc = DateOnly.Parse(row["Ngày nhập học"].ToString()),
+                            IdTrangThaiHoc = int.Parse(row["ID trạng thái học"].ToString()),
+                            NgayChuyenTrangThai = DateOnly.Parse(row["Ngày chuyển trạng thái"].ToString()),
+                            SoQuyetDinhThoiHoc = row["Số quyết định thôi học"].ToString(),
+                            TenLuanVan = row["Tên luận văn"].ToString(),
+                            NgayBaoVeCapTruong = DateOnly.Parse(row["Ngày bảo vệ cấp trường"].ToString()),
+                            NgayBaoVeCapCoSo = DateOnly.Parse(row["Ngày bảo vệ cấp cơ sở"].ToString()),
+                            QuyChuanNguoiHuongDan = row["Quy chuẩn người hướng dẫn"].ToString(),
+                            IdNguoiHuongDanChinh = int.Parse(row["ID người hướng dẫn chính"].ToString()),
+                            IdNguoiHuongDanPhu = int.Parse(row["ID người hướng dẫn phụ"].ToString()),
+                            SoQuyetDinhCongNhan = row["Số quyết định công nhận"].ToString(),
+                            NgayQuyetDinhCongNhan = DateOnly.Parse(row["Ngày quyết định công nhận"].ToString()),
+                            IdLoaiTotNghiep = int.Parse(row["ID loại tốt nghiệp"].ToString()),
+                            SoQuyetDinhThanhLapHoiDongBaoVeCapCoSo = row["Số quyết định thành lập hội đồng bảo vệ cấp cơ sở"].ToString(),
+                            NgayQuyetDinhThanhLapHoiDongBaoVeCapCoSo = DateOnly.Parse(row["Ngày quyết định thành lập hội đồng bảo vệ cấp cơ sở"].ToString()),
+                            SoQuyetDinhThanhLapHoiDongBaoVeCapTruong = row["Số quyết định thành lập hội đồng bảo vệ cấp trường"].ToString(),
+                            NgayQuyetDinhThanhLapHoiDongBaoVeCapTruong = DateOnly.Parse(row["Ngày quyết định thành lập hội đồng bảo vệ cấp trường"].ToString())
+                        };
+                        await Create(ncs);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         public async Task<IActionResult> Chart()

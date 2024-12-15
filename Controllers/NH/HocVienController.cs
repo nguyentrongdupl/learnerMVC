@@ -270,48 +270,49 @@ namespace C500Hemis.Controllers.NH
 
         }
 
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
             try
             {
+                List<TbHocVien> getall = await TbHocViens();
                 if (file == null || file.Length == 0)
                 {
                     ViewData["Error"] = "File";
-                    return View("Index");
+                    ViewBag.Message = "File is Invalid";
+                    return View("Index", getall);
                 }
-                else
+                using (var stream = new MemoryStream())
                 {
-                    using (var stream = new MemoryStream())
-                    {
-                        await file.OpenReadStream().CopyToAsync(stream);
-                        stream.Position = 0;
-                        var workbook = new Workbook();
-                        workbook.LoadFromStream(stream);
-                        var worksheet = workbook.Worksheets[0];
-                        DataTable dataTable = worksheet.ExportDataTable();
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
 
-                        foreach (DataRow row in dataTable.Rows)
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var hv = new TbHocVien()
                         {
-                            var hv = new TbHocVien()
-                            {
-                                IdHocVien = int.Parse(row["ID học viên"].ToString()),
-                                MaHocVien = row["Mã học viên"].ToString(),
-                                IdNguoi = int.Parse(row["ID người"].ToString()),
-                                Email = row["Email"].ToString(),
-                                Sdt = row["Số điện thoại"].ToString(),
-                                SoSoBaoHiem = row["Số sổ bảo hiểm"].ToString(),
-                                IdLoaiKhuyetTat = int.Parse(row["ID loại khuyết tật"].ToString()),
-                                IdTinh = int.Parse(row["ID tỉnh"].ToString()),
-                                IdHuyen = int.Parse(row["ID Huyện"].ToString()),
-                                IdXa = int.Parse(row["ID xã"].ToString()),
-                                NoiSinh = row["Nơi sinh"].ToString(),
-                                QueQuan = row["Quê quán"].ToString()
-                            };
-                            await Create(hv);
-                        }
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            MaHocVien = row["Mã học viên"].ToString(),
+                            IdNguoi = int.Parse(row["ID người"].ToString()),
+                            Email = row["Email"].ToString(),
+                            Sdt = row["Số điện thoại"].ToString(),
+                            SoSoBaoHiem = row["Số sổ bảo hiểm"].ToString(),
+                            IdLoaiKhuyetTat = int.Parse(row["ID loại khuyết tật"].ToString()),
+                            IdTinh = int.Parse(row["ID tỉnh"].ToString()),
+                            IdHuyen = int.Parse(row["ID Huyện"].ToString()),
+                            IdXa = int.Parse(row["ID xã"].ToString()),
+                            NoiSinh = row["Nơi sinh"].ToString(),
+                            QueQuan = row["Quê quán"].ToString()
+                        };
+                        await Create(hv);
                     }
                 }
-                return RedirectToAction(nameof(Index));
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
             }
             catch (Exception ex)
             {

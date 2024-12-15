@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class ThongTinViPhamController : Controller
@@ -271,6 +273,52 @@ namespace C500Hemis.Controllers.NH
         {
             var tbThongTinViPhams = await ApiServices_.GetAll<TbThongTinViPham>("/api/nh/ThongTinViPham");
             return tbThongTinViPhams.Any(e => e.IdThongTinViPham == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbThongTinViPham> getall = await TbThongTinViPhams();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var vipham = new TbThongTinViPham()
+                        {
+                            IdThongTinViPham = int.Parse(row["Id thông tin vi phạm"].ToString()),
+                            IdHocVien = int.Parse(row["Id học viên"].ToString()),
+                            ThoiGianViPham = DateOnly.Parse(row["Thời gian vi phạm"].ToString()),
+                            NoiDungViPham = row["Nội dung vi phạm"].ToString(),
+                            HinhThucXuLy = row["Hình thức xử lí"].ToString(),
+                            IdLoaiViPham = int.Parse(row["Id loại vi phạm"].ToString())
+                        };
+                        await Create(vipham);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
 
         public async Task<IActionResult> Chart()

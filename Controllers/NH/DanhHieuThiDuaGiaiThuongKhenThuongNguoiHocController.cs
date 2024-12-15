@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class DanhHieuThiDuaGiaiThuongKhenThuongNguoiHocController : Controller
@@ -319,6 +321,55 @@ namespace C500Hemis.Controllers.NH
             ViewData["PhuongThucKhenThuong"] = ptKhenThuong;
             ViewData["LoaiDanhHieu"] = loaiDanhHieu;
             return View(getall);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View("Index", getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var khenthuong = new TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc()
+                        {
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            IdDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc = int.Parse(row["Danh hiệu thi đua giải thưởng khen thưởng người học"].ToString()),
+                            IdLoaiDanhHieuThiDuaGiaiThuongKhenThuong = int.Parse(row["Loại danh hiệu thi đua giải thưởng khen thưởng"].ToString()),
+                            IdDanhHieuThiDuaGiaiThuongKhenThuong = int.Parse(row["Danh hiệu thi đua giải thưởng khen thưởng"].ToString()),
+                            SoQuyetDinhKhenThuong = row["Số quyết định khen thưởng"].ToString(),
+                            IdPhuongThucKhenThuong = int.Parse(row["Phương thức khen thưởng"].ToString()),
+                            NamKhenThuong = row["Năm khen thưởng"].ToString(),
+                            IdCapKhenThuong = int.Parse(row["Cấp khen thưởng"].ToString())
+                        };
+                        await Create(khenthuong);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }
