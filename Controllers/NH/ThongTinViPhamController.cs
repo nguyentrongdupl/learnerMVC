@@ -280,12 +280,14 @@ namespace C500Hemis.Controllers.NH
         {
             try
             {
-                List<TbThongTinViPham> getall = await TbThongTinViPhams();
-                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
-                ViewData["idNguoiToName"] = idNguoiToName;
+                List<TbThongTinViPham> getall = new List<TbThongTinViPham>();
+                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
+                ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
-                    ViewData["Error"] = "File";
+                    getall = await TbThongTinViPhams();
+                    idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                    ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
                     return View(getall);
                 }
@@ -312,6 +314,9 @@ namespace C500Hemis.Controllers.NH
                         await Create(vipham);
                     }
                 }
+                getall = await TbThongTinViPhams();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
                 ViewBag.Message = "Import Successfully";
                 return View("Index", getall);
             }

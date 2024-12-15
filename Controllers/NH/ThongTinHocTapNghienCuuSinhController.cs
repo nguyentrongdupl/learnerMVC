@@ -324,12 +324,14 @@ namespace C500Hemis.Controllers.CTDT
         {
             try
             {
-                List<TbThongTinHocTapNghienCuuSinh> getall = await TbThongTinHocTapNghienCuuSinhs();
-                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
-                ViewData["idNguoiToName"] = idNguoiToName;
+                List<TbThongTinHocTapNghienCuuSinh> getall = new List<TbThongTinHocTapNghienCuuSinh>();
+                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
+                ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
-                    ViewData["Error"] = "File";
+                    getall = await TbThongTinHocTapNghienCuuSinhs();
+                    idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                    ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
                     return View(getall);
                 }
@@ -375,6 +377,9 @@ namespace C500Hemis.Controllers.CTDT
                         await Create(ncs);
                     }
                 }
+                getall = await TbThongTinHocTapNghienCuuSinhs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
                 ViewBag.Message = "Import Successfully";
                 return View("Index", getall);
             }

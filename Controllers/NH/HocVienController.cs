@@ -275,10 +275,11 @@ namespace C500Hemis.Controllers.NH
         {
             try
             {
-                List<TbHocVien> getall = await TbHocViens();
+                List<TbHocVien> getall = new List<TbHocVien>();
+                ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
-                    ViewData["Error"] = "File";
+                    getall = await TbHocViens();
                     ViewBag.Message = "File is Invalid";
                     return View("Index", getall);
                 }
@@ -311,6 +312,7 @@ namespace C500Hemis.Controllers.NH
                         await Create(hv);
                     }
                 }
+                getall = await TbHocViens();
                 ViewBag.Message = "Import Successfully";
                 return View("Index", getall);
             }
