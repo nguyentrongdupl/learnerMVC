@@ -16,11 +16,19 @@
 <h1>THÔNG TIN VI PHẠM</h1>
 
 <div class="w">
-    <p>
-        <a asp-action="Create" style="margin-left:6%;" class="btn btn-create">
-            Tạo Mới  <i class="fa-solid fa-plus"></i>
+     <div style="display: flex; align-items: center; gap: 20px;">
+        <!-- Create Button -->
+        <a asp-action="Create" style="margin-right: 20px; min-width: 100px" class="btn btn-create">
+            Tạo Mới <i class="fa-solid fa-plus"></i>
         </a>
-    </p>
+
+        <!-- Import Form -->
+        <form asp-action="ImportExcel" method="post" enctype="multipart/form-data" style="display: flex; height: 30px; align-items: center">
+            <label for="file" class="form-label" style="margin: 0">Chọn File Excel: </label>
+            <input type="file" name="file" class="form-control" style="width: 240px; margin-left: 8px" />
+            <button type="submit" data-bs-dismiss="toast" class="btn btn-primary" style="width: 80px; margin: 0">Import</button>
+        </form>
+    </div>
     <table class="table table-hover" id="example">
         <thead>
             <tr>
