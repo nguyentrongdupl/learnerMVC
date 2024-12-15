@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class ThongTinViecLamSauTotNghiepController : Controller
@@ -277,6 +279,54 @@ namespace C500Hemis.Controllers.NH
         {
             var tbThongTinViecLamSauTotNghieps = await ApiServices_.GetAll<TbThongTinViecLamSauTotNghiep>("/api/nh/ThongTinViecLamSauTotNghiep");
             return tbThongTinViecLamSauTotNghieps.Any(e => e.IdThongTinViecLamSauTotNghiep == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbThongTinViecLamSauTotNghiep> getall = await TbThongTinViecLamSauTotNghieps();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var vieclam = new TbThongTinViecLamSauTotNghiep()
+                        {
+                            IdThongTinViecLamSauTotNghiep = int.Parse(row["ID Việc Làm Sau Tốt Nghiệp"].ToString()),
+                            IdHocVien = int.Parse(row["ID Học Viên"].ToString()),
+                            TenDonViCapBang = row["Tên Đơn Vị Cấp Bằng"].ToString(),
+                            DonViTuyenDung = row["Đơn Vị Tuyển Dụng"].ToString(),
+                            IdHinhThucTuyenDung = int.Parse(row["ID Hình Thức Tuyển Dụng"].ToString()),
+                            ThoiGianTuyenDung = DateOnly.Parse(row["Thời Gian Tuyển Dụng"].ToString()),
+                            IdViTriViecLam = int.Parse(row["Id Vị Trí Việc Làm"].ToString()),
+                            MucLuongKhoiDiem = int.Parse(row["Mức Lương Khởi Điểm"].ToString())
+                        };
+                        await Create(vieclam);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }

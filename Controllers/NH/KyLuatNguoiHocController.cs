@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class KyLuatNguoiHocController : Controller
@@ -278,6 +280,55 @@ namespace C500Hemis.Controllers.NH
         {
             var tbKyLuatNguoiHocs = await ApiServices_.GetAll<TbKyLuatNguoiHoc>("/api/nh/KyLuatNguoiHoc");
             return tbKyLuatNguoiHocs.Any(e => e.IdKyLuatNguoiHoc == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+
+                List<TbKyLuatNguoiHoc> getall = await TbKyLuatNguoiHocs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var kyluat = new TbKyLuatNguoiHoc()
+                        {
+                            IdKyLuatNguoiHoc = int.Parse(row["ID kỷ luật người học"].ToString()),
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            IdLoaiKyLuat = int.Parse(row["ID loại kỷ luật"].ToString()),
+                            LyDo = row["Lý do"].ToString(),
+                            IdCapQuyetDinh = int.Parse(row["ID cấp quyết định"].ToString()),
+                            SoQuyetDinh = row["Số quyết định"].ToString(),
+                            NgayQuyetDinh = DateOnly.Parse(row["Ngày quyết định"].ToString()),
+                            NamBiKyLuat = row["Năm bị kỷ luật"].ToString()
+                        };
+                        await Create(kyluat);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }

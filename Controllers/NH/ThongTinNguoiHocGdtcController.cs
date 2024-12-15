@@ -8,6 +8,8 @@ using Microsoft.EntityFrameworkCore;
 using C500Hemis.Models;
 using C500Hemis.API;
 using C500Hemis.Models.DM;
+using Spire.Xls;
+using System.Data;
 namespace C500Hemis.Controllers.NH
 {
     public class ThongTinNguoiHocGdtcController : Controller
@@ -264,6 +266,50 @@ namespace C500Hemis.Controllers.NH
         {
             var tbThongTinNguoiHocGdtcs = await ApiServices_.GetAll<TbThongTinNguoiHocGdtc>("/api/nh/ThongTinNguoiHocGdtcs");
             return tbThongTinNguoiHocGdtcs.Any(e => e.IdThongTinNguoiHocGdtc == id);
+        }
+
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ImportExcel(IFormFile file)
+        {
+            try
+            {
+                List<TbThongTinNguoiHocGdtc> getall = await TbThongTinNguoiHocGdtcs();
+                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                if (file == null || file.Length == 0)
+                {
+                    ViewData["Error"] = "File";
+                    ViewBag.Message = "File is Invalid";
+                    return View(getall);
+                }
+                using (var stream = new MemoryStream())
+                {
+                    await file.OpenReadStream().CopyToAsync(stream);
+                    stream.Position = 0;
+                    var workbook = new Workbook();
+                    workbook.LoadFromStream(stream);
+                    var worksheet = workbook.Worksheets[0];
+                    DataTable dataTable = worksheet.ExportDataTable();
+
+                    foreach (DataRow row in dataTable.Rows)
+                    {
+                        var nguoihocgdtc = new TbThongTinNguoiHocGdtc()
+                        {
+                            IdThongTinNguoiHocGdtc = int.Parse(row["Id thông tin người học GDTC"].ToString()),
+                            IdHocVien = int.Parse(row["ID học viên"].ToString()),
+                            KetQuaHocTap = row["Kết quả học tập"].ToString(),
+                            TieuChuanDanhGiaXepLoaiTheLuc = row["Tiêu chuẩn đánh giá xếp loại thể lực"].ToString()
+                        };
+                        await Create(nguoihocgdtc);
+                    }
+                }
+                ViewBag.Message = "Import Successfully";
+                return View("Index", getall);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
         }
     }
 }

@@ -78,7 +78,7 @@
             @{
                 int count = 0;
             }
-            @if (Model == null)
+            @if (ViewBag.Message == "File is Invalid")
             {
                 <div id="toastexcel" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
@@ -92,65 +92,74 @@
             }
             else
             {
-                @foreach (var item in Model)
-                {
-                    count++;
-                    <tr>
-                        <td>
-                            @count
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.MaHocVien)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Email)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.Sdt)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.SoSoBaoHiem)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.NoiSinh)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.QueQuan)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.IdHuyenNavigation.TenHuyen)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.IdNguoiNavigation.name)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.IdTinhNavigation.TenTinh)
-                        </td>
-                        <td>
-                            @Html.DisplayFor(modelItem => item.IdXaNavigation.TenXa)
-                        </td>
-                        <td>
-                            <a asp-action="Edit" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chỉnh sửa">
-                                <div class="icon-container">
-                                    <i class="fa-regular fa-pen-to-square" style="color: #7dd9bd;"></i>
-                                </div>
-                            </a>
-                            <a asp-action="Details" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chi tiết">
-                                <div class="icon-container">
-                                    <i class="fa-solid fa-circle-info" style="color: #e5b8e4;"></i>
-                                </div>
-                            </a>
-                            <a asp-action="Delete" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Xóa">
-                                <div class="icon-container">
-                                    <i class="fa-solid fa-trash" style="color: #f46262;"></i>
-                                </div>
-                            </a>
-                        </td>
-                    </tr>
-                }
+                <div id="toastexcel" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Thông báo</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        Nhập file excel thành công
+                    </div>
+                </div>
+            }
+            @foreach (var item in Model)
+            {
+                count++;
+                <tr>
+                    <td>
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.MaHocVien)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Email)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Sdt)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SoSoBaoHiem)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.NoiSinh)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.QueQuan)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IdHuyenNavigation.TenHuyen)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IdNguoiNavigation.name)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IdTinhNavigation.TenTinh)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IdXaNavigation.TenXa)
+                    </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chỉnh sửa">
+                            <div class="icon-container">
+                                <i class="fa-regular fa-pen-to-square" style="color: #7dd9bd;"></i>
+                            </div>
+                        </a>
+                        <a asp-action="Details" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Chi tiết">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-circle-info" style="color: #e5b8e4;"></i>
+                            </div>
+                        </a>
+                        <a asp-action="Delete" asp-route-id="@item.IdHocVien" class="btn" data-bs-toggle="tooltip" title="Xóa">
+                            <div class="icon-container">
+                                <i class="fa-solid fa-trash" style="color: #f46262;"></i>
+                            </div>
+                        </a>
+                    </td>
+                </tr>
             }
         </tbody>
     </table>
