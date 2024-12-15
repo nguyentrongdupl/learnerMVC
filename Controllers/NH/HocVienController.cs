@@ -273,9 +273,9 @@ namespace C500Hemis.Controllers.NH
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
+            List<TbHocVien> getall = new List<TbHocVien>();
             try
             {
-                List<TbHocVien> getall = new List<TbHocVien>();
                 ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
@@ -318,7 +318,9 @@ namespace C500Hemis.Controllers.NH
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                getall = await TbHocViens();
+                ViewBag.Message = "File is Invalid";
+                return View("Index", getall);
             }
         }
 

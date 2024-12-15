@@ -34,7 +34,8 @@ namespace C500Hemis.Controllers.CTDT
             List<TbCanBo> TbCanBos = await ApiServices_.GetAll<TbCanBo>("/api/cb/CanBo");
             List<DmSinhVienNam> DmSinhVienNams = await ApiServices_.GetAll<DmSinhVienNam>("/api/dm/SinhVienNam");
             List<DmTrangThaiHoc> DmTrangThaiHocs = await ApiServices_.GetAll<DmTrangThaiHoc>("/api/dm/TrangThaiHoc");
-            TbThongTinHocTapNghienCuuSinhs.ForEach(item => {
+            TbThongTinHocTapNghienCuuSinhs.ForEach(item =>
+            {
                 item.IdChuongTrinhDaoTaoNavigation = DmChuongTrinhDaoTaos.FirstOrDefault(x => x.IdChuongTrinhDaoTao == item.IdChuongTrinhDaoTao);
                 item.IdDoiTuongDauVaoNavigation = DmDoiTuongDauVaos.FirstOrDefault(x => x.IdDoiTuongDauVao == item.IdDoiTuongDauVao);
                 item.IdHocVienNavigation = TbHocViens.FirstOrDefault(x => x.IdHocVien == item.IdHocVien);
@@ -322,10 +323,10 @@ namespace C500Hemis.Controllers.CTDT
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
+            List<TbThongTinHocTapNghienCuuSinh> getall = new List<TbThongTinHocTapNghienCuuSinh>();
+            Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
             try
             {
-                List<TbThongTinHocTapNghienCuuSinh> getall = new List<TbThongTinHocTapNghienCuuSinh>();
-                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
                 ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
@@ -333,7 +334,7 @@ namespace C500Hemis.Controllers.CTDT
                     idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
                     ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
-                    return View(getall);
+                    return View("Index", getall);
                 }
                 using (var stream = new MemoryStream())
                 {
@@ -385,7 +386,11 @@ namespace C500Hemis.Controllers.CTDT
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                getall = await TbThongTinHocTapNghienCuuSinhs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                ViewBag.Message = "File is Invalid";
+                return View("Index", getall);
             }
         }
 

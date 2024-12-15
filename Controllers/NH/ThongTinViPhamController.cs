@@ -28,7 +28,8 @@ namespace C500Hemis.Controllers.NH
             List<TbThongTinViPham> TbThongTinViPhams = await ApiServices_.GetAll<TbThongTinViPham>("/api/nh/ThongTinViPham");
             List<TbHocVien> TbHocViens = await ApiServices_.GetAll<TbHocVien>("/api/nh/HocVien");
             List<DmLoaiViPham> DmLoaiViPhams = await ApiServices_.GetAll<DmLoaiViPham>("/api/dm/LoaiViPham");
-            TbThongTinViPhams.ForEach(item => {
+            TbThongTinViPhams.ForEach(item =>
+            {
                 item.IdHocVienNavigation = TbHocViens.FirstOrDefault(x => x.IdHocVien == item.IdHocVien);
                 item.IdLoaiViPhamNavigation = DmLoaiViPhams.FirstOrDefault(x => x.IdLoaiViPham == item.IdLoaiViPham);
             });
@@ -278,10 +279,10 @@ namespace C500Hemis.Controllers.NH
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
+            List<TbThongTinViPham> getall = new List<TbThongTinViPham>();
+            Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
             try
             {
-                List<TbThongTinViPham> getall = new List<TbThongTinViPham>();
-                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
                 ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
@@ -289,7 +290,7 @@ namespace C500Hemis.Controllers.NH
                     idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
                     ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
-                    return View(getall);
+                    return View("Index", getall);
                 }
                 using (var stream = new MemoryStream())
                 {
@@ -322,7 +323,11 @@ namespace C500Hemis.Controllers.NH
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                getall = await TbThongTinViPhams();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                ViewBag.Message = "File is Invalid";
+                return View("Index", getall);
             }
         }
 

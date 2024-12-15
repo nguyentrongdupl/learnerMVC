@@ -279,10 +279,10 @@ namespace C500Hemis.Controllers.NH
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
+            List<TbThongTinHocBong> getall = new List<TbThongTinHocBong>();
+            Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
             try
             {
-                List<TbThongTinHocBong> getall = new List<TbThongTinHocBong>();
-                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
                 ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
@@ -290,7 +290,7 @@ namespace C500Hemis.Controllers.NH
                     idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
                     ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
-                    return View(getall);
+                    return View("Index", getall);
                 }
                 using (var stream = new MemoryStream())
                 {
@@ -324,7 +324,11 @@ namespace C500Hemis.Controllers.NH
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                getall = await TbThongTinHocBongs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                ViewBag.Message = "File is Invalid";
+                return View("Index", getall);
             }
         }
 

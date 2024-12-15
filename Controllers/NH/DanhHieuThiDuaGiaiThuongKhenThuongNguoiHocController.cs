@@ -32,7 +32,8 @@ namespace C500Hemis.Controllers.NH
             List<TbHocVien> TbHocViens = await ApiServices_.GetAll<TbHocVien>("/api/nh/HocVien");
             List<DmLoaiDanhHieuThiDuaGiaiThuongKhenThuong> DmLoaiDanhHieuThiDuaGiaiThuongKhenThuongs = await ApiServices_.GetAll<DmLoaiDanhHieuThiDuaGiaiThuongKhenThuong>("/api/dm/LoaiDanhHieuThiDuaGiaiThuongKhenThuong");
             List<DmPhuongThucKhenThuong> DmPhuongThucKhenThuongs = await ApiServices_.GetAll<DmPhuongThucKhenThuong>("/api/dm/PhuongThucKhenThuong");
-            TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs.ForEach(item => {
+            TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs.ForEach(item =>
+            {
                 item.IdCapKhenThuongNavigation = DmCapKhenThuongs.FirstOrDefault(x => x.IdCapKhenThuong == item.IdCapKhenThuong);
                 item.IdDanhHieuThiDuaGiaiThuongKhenThuongNavigation = DmThiDuaGiaiThuongKhenThuongs.FirstOrDefault(x => x.IdThiDuaGiaiThuongKhenThuong == item.IdDanhHieuThiDuaGiaiThuongKhenThuong);
                 item.IdHocVienNavigation = TbHocViens.FirstOrDefault(x => x.IdHocVien == item.IdHocVien);
@@ -312,7 +313,7 @@ namespace C500Hemis.Controllers.NH
                 Count = g.Count()
             }).ToList();
 
-            var loaiDanhHieu = getall.GroupBy(k => k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuong == null ? "Không": k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuongNavigation.LoaiDanhHieuThiDuaGiaiThuongKhenThuong).Select(g => new
+            var loaiDanhHieu = getall.GroupBy(k => k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuong == null ? "Không" : k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuongNavigation.LoaiDanhHieuThiDuaGiaiThuongKhenThuong).Select(g => new
             {
                 loaiDanhHieu = g.Key,
                 Count = g.Count()
@@ -326,10 +327,10 @@ namespace C500Hemis.Controllers.NH
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> ImportExcel(IFormFile file)
         {
+            List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = new List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc>();
+            Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
             try
             {
-                List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = new List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc>();
-                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
                 ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
@@ -372,7 +373,11 @@ namespace C500Hemis.Controllers.NH
             }
             catch (Exception ex)
             {
-                return BadRequest();
+                getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
+                ViewBag.Message = "File is Invalid";
+                return View("Index", getall);
             }
         }
     }
