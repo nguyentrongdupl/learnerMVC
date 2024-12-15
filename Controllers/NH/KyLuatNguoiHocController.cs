@@ -287,7 +287,6 @@ namespace C500Hemis.Controllers.NH
         {
             try
             {
-
                 List<TbKyLuatNguoiHoc> getall = await TbKyLuatNguoiHocs();
                 Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
                 ViewData["idNguoiToName"] = idNguoiToName;
@@ -357,7 +356,6 @@ namespace C500Hemis.Controllers.NH
             {
                 return BadRequest();
             }
-
         }
     }
 }
