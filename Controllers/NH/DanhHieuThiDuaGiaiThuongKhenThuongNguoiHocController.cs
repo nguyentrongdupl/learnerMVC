@@ -295,10 +295,31 @@ namespace C500Hemis.Controllers.NH
             var tbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs = await ApiServices_.GetAll<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc>("/api/nh/DanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc");
             return tbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs.Any(e => e.IdDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc == id);
         }
-        public async Task<IActionResult> ChartCKT()
+        public async Task<IActionResult> Chart()
         {
             List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
-            // Lấy data từ các table khác có liên quan (khóa ngoài) để hiển thị trên Index           
+            // Lấy data từ các table khác có liên quan (khóa ngoài) để hiển thị trên Index
+
+            var capKhenThuong = getall.GroupBy(k => k.IdCapKhenThuong == null ? "Không" : k.IdCapKhenThuongNavigation.CapKhenThuong).Select(g => new
+            {
+                capKhenThuong = g.Key,
+                Count = g.Count()
+            }).ToList();
+
+            var ptKhenThuong = getall.GroupBy(k => k.IdPhuongThucKhenThuong == null ? "Không" : k.IdPhuongThucKhenThuongNavigation.PhuongThucKhenThuong).Select(g => new
+            {
+                ptKhenThuong = g.Key,
+                Count = g.Count()
+            }).ToList();
+
+            var loaiDanhHieu = getall.GroupBy(k => k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuong == null ? "Không": k.IdLoaiDanhHieuThiDuaGiaiThuongKhenThuongNavigation.LoaiDanhHieuThiDuaGiaiThuongKhenThuong).Select(g => new
+            {
+                loaiDanhHieu = g.Key,
+                Count = g.Count()
+            }).ToList();
+            ViewData["CapKhenThuong"] = capKhenThuong;
+            ViewData["PhuongThucKhenThuong"] = ptKhenThuong;
+            ViewData["LoaiDanhHieu"] = loaiDanhHieu;
             return View(getall);
         }
 

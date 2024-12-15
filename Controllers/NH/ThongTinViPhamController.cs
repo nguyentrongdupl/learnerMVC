@@ -320,5 +320,19 @@ namespace C500Hemis.Controllers.NH
                 return BadRequest();
             }
         }
+
+        public async Task<IActionResult> Chart()
+        {
+            List<TbThongTinViPham> getall = await TbThongTinViPhams();
+            // Lấy data từ các table khác có liên quan (khóa ngoài) để hiển thị trên Index
+
+            var loaiViPham = getall.GroupBy(k => k.IdLoaiViPham == null ? "Không" : k.IdLoaiViPhamNavigation.LoaiViPham).Select(g => new
+            {
+                loaiViPham = g.Key,
+                Count = g.Count()
+            }).ToList();
+            ViewData["LoaiViPham"] = loaiViPham;
+            return View(getall);
+        }
     }
 }

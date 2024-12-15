@@ -1,12 +1,12 @@
-﻿@model IEnumerable<C500Hemis.Models.TbHocVien>
+﻿@model IEnumerable<C500Hemis.Models.TbThongTinViPham>
 
 @{
     ViewData["Title"] = "Index";
-    var disabilityCounts = ViewData["DisabilityCounts"];
+    var loaiViPham = ViewData["LoaiViPham"];
 }
 
 <div class="d-flex flex-column justify-content-center align-items-center w-100">
-    <h1>Biểu đồ khuyết tật</h1>
+    <h1>Biểu đồ loại vi phạm</h1>
     <canvas id="pieChartDisable"></canvas>
 </div>
 
@@ -24,9 +24,9 @@
     <script src="~/assets/js/chart.js"></script>
     <script>
         // Disablility chart
-        var disabilityData = @Html.Raw(Json.Serialize(disabilityCounts));
+        var disabilityData = @Html.Raw(Json.Serialize(loaiViPham));
         var Labels = disabilityData.map(function(item) {
-            return item.loaiKhuyetTat;
+            return item.loaiViPham;
         });
         var Data = disabilityData.map(function(item) {
             return item.count;
@@ -36,4 +36,3 @@
 
     </script>
 }
-                
