@@ -2,6 +2,7 @@
 
 @{
     ViewData["Title"] = "Thông tin vi phạm";
+    var excelError = ViewData["Error"];
     Dictionary<int, string> idNguoiToName = (Dictionary<int, string>)ViewData["idNguoiToName"];
 }
 <html lang="vi">
@@ -45,6 +46,30 @@
         <tbody>
             @{
                 int count = 0;
+            }
+            @if (ViewBag.Message == "File is Invalid")
+            {
+                <div id="toastexcel" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Lỗi</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        File không hợp lệ
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div id="toastexcel" class="toast" role="alert" aria-live="assertive" aria-atomic="true">
+                    <div class="toast-header">
+                        <strong class="me-auto">Thông báo</strong>
+                        <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+                    </div>
+                    <div class="toast-body">
+                        Nhập file excel thành công
+                    </div>
+                </div>
             }
             @foreach (var item in Model)
             {
@@ -94,6 +119,17 @@
     </table>
 </div>
 
+@section Styles {
+    <style>
+        #toastexcel {
+            position: absolute;
+            top: 70px;
+            right: 24px;
+            z-index: 10000;
+        }
+    </style>
+}
+
 @section Scripts {
     <script src="https://code.jquery.com/jquery-3.7.0.min.js"></script>
     <script src="https://cdn.datatables.net/1.11.5/js/jquery.dataTables.min.js"></script>
@@ -107,6 +143,23 @@
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.2.2/js/buttons.print.min.js"></script>
 
+    <script>
+        $(document).ready(function () {
+            // Check if there is a toast message
+            if (@excelError != null) {
+                var toastMessage = @excelError;
+                var toastType = @excelError;
+
+                // Set toast content and style
+                $('#toastBody').text(toastMessage);
+                $('#toastMessage').removeClass('bg-success bg-danger').addClass('bg-' + toastType);
+
+                // Show the toast
+                var toast = new bootstrap.Toast($('#toastexcel')[0]);
+                toast.show();
+            }
+        });
+    </script>
     <script>
         $(document).ready(function() {
             // Initialize DataTable
