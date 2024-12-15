@@ -281,11 +281,13 @@ namespace C500Hemis.Controllers.NH
         {
             try
             {
-                List<TbNguoiHocVayTinDung> getall = await TbNguoiHocVayTinDungs();
-                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
-                ViewData["idNguoiToName"] = idNguoiToName;
+                List<TbNguoiHocVayTinDung> getall = new List<TbNguoiHocVayTinDung>();
+                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
                 if (file == null || file.Length == 0)
                 {
+                    getall = await TbNguoiHocVayTinDungs();
+                    idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                    ViewData["idNguoiToName"] = idNguoiToName;
                     ViewData["Error"] = "File";
                     ViewBag.Message = "File is Invalid";
                     return View(getall);
@@ -315,6 +317,9 @@ namespace C500Hemis.Controllers.NH
                         await Create(nhvtd);
                     }
                 }
+                getall = await TbNguoiHocVayTinDungs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
                 ViewBag.Message = "Import Successfully";
                 return View("Index", getall);
             }

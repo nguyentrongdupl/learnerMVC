@@ -328,13 +328,14 @@ namespace C500Hemis.Controllers.NH
         {
             try
             {
-                List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
-                Dictionary<int, string> idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
-                ViewData["idNguoiToName"] = idNguoiToName;
-
+                List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc> getall = new List<TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHoc>();
+                Dictionary<int, string> idNguoiToName = new Dictionary<int, string>();
+                ViewData["Error"] = "File";
                 if (file == null || file.Length == 0)
                 {
-                    ViewData["Error"] = "File";
+                    getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
+                    idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                    ViewData["idNguoiToName"] = idNguoiToName;
                     ViewBag.Message = "File is Invalid";
                     return View("Index", getall);
                 }
@@ -363,6 +364,9 @@ namespace C500Hemis.Controllers.NH
                         await Create(khenthuong);
                     }
                 }
+                getall = await TbDanhHieuThiDuaGiaiThuongKhenThuongNguoiHocs();
+                idNguoiToName = (await TbNguois()).ToDictionary(x => x.IdNguoi, x => x.Ho + " " + x.Ten);
+                ViewData["idNguoiToName"] = idNguoiToName;
                 ViewBag.Message = "Import Successfully";
                 return View("Index", getall);
             }
