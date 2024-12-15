@@ -273,5 +273,29 @@ namespace C500Hemis.Controllers.NH
             var tbNguoiHocVayTinDungs = await ApiServices_.GetAll<TbNguoiHocVayTinDung>("/api/nh/NguoiHocVayTinDung");
             return tbNguoiHocVayTinDungs.Any(e => e.IdNguoiHocVayTinDung == id);
         }
+
+        public async Task<IActionResult> Chart()
+        {
+            try
+            {
+                List<TbNguoiHocVayTinDung> getall = await TbNguoiHocVayTinDungs();
+                // Lấy data cho biểu đồ khuyết tật
+                var ttvay = getall.GroupBy(g => g.TinhTrangVay == null ? "Không" : g.TinhTrangVayNavigation.TuyChon).Select(s => new
+                {
+                    ttvay = s.Key,
+                    Count = s.Count()
+                }).ToList();
+
+                
+                ViewData["ttvay"] = ttvay;
+
+                return View();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+
+        }
     }
 }

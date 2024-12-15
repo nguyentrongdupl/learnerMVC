@@ -31,7 +31,6 @@
                 <th>@Html.DisplayNameFor(model => model.ThoiGianViPham)</th>
                 <th>@Html.DisplayNameFor(model => model.NoiDungViPham)</th>
                 <th>@Html.DisplayNameFor(model => model.HinhThucXuLy)</th>
-                <th>@Html.DisplayNameFor(model => model.IdLoaiViPham)</th>
                 <th class="nosort">Tùy chọn</th>
             </tr>
         </thead>
@@ -63,9 +62,6 @@
                     </td>
                     <td class="text-center">
                         @Html.DisplayFor(modelItem => item.HinhThucXuLy)
-                    </td>
-                    <td class="text-center">
-                        @Html.DisplayFor(modelItem => item.IdLoaiViPhamNavigation.LoaiViPham)
                     </td>
                     <td>
                         <a asp-action="Edit" asp-route-id="@item.IdThongTinViPham" class="btn" data-bs-toggle="tooltip" title="Chỉnh sửa">

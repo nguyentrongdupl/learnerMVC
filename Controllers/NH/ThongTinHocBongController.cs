@@ -26,7 +26,8 @@ namespace C500Hemis.Controllers.NH
             List<TbThongTinHocBong> TbThongTinHocBongs = await ApiServices_.GetAll<TbThongTinHocBong>("/api/nh/ThongTinHocBong");
             List<TbHocVien> TbHocViens = await ApiServices_.GetAll<TbHocVien>("/api/nh/HocVien");
             List<DmLoaiHocBong> DmLoaiHocBongs = await ApiServices_.GetAll<DmLoaiHocBong>("/api/dm/LoaiHocBong");
-            TbThongTinHocBongs.ForEach(item => {
+            TbThongTinHocBongs.ForEach(item =>
+            {
                 item.IdHocVienNavigation = TbHocViens.FirstOrDefault(x => x.IdHocVien == item.IdHocVien);
                 item.IdLoaiHocBongNavigation = DmLoaiHocBongs.FirstOrDefault(x => x.IdLoaiHocBong == item.IdLoaiHocBong);
             });
@@ -271,6 +272,27 @@ namespace C500Hemis.Controllers.NH
         {
             var tbThongTinHocBongs = await ApiServices_.GetAll<TbThongTinHocBong>("/api/nh/ThongTinHocBong");
             return tbThongTinHocBongs.Any(e => e.IdThongTinHocBong == id);
+        }
+
+        public async Task<IActionResult> Chart()
+        {
+            try
+            {
+                List<TbThongTinHocBong> getall = await TbThongTinHocBongs();
+                // Lấy data cho biểu đồ khuyết tật
+                var loaiHocBong = getall.GroupBy(g => g.IdThongTinHocBong == null ? "Không" : g.IdLoaiHocBongNavigation.LoaiHocBong).Select(s => new
+                {
+                    tenHocBong = s.Key,
+                    Count = s.Count()
+                }).ToList();
+                ViewData["LoaiHocBong"] = loaiHocBong;
+                return View();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest();
+            }
+
         }
     }
 }

@@ -325,7 +325,7 @@ namespace C500Hemis.Controllers.NH
             return tbHocViens.Any(e => e.IdHocVien == id);
         }
 
-        public async Task<IActionResult> DisableChart()
+        public async Task<IActionResult> Chart()
         {
             try
             {
@@ -347,21 +347,6 @@ namespace C500Hemis.Controllers.NH
                 return BadRequest();
             }
 
-        }
-        public async Task<JsonResult> GetLoaiKhuyetTatDataAsync()
-        {
-            var list = await TbHocViens();
-            var data = list
-                .GroupBy(hv => hv.IdLoaiKhuyetTatNavigation == null
-            ? "Không" // Label for null cases
-            : hv.IdLoaiKhuyetTatNavigation.LoaiKhuyetTat)
-                .Select(g => new
-                {
-                    LoaiKhuyetTat = g.Key,
-                    Count = g.Count()
-                }).ToList();
-
-            return Json(data);
         }
     }
 }
